@@ -1,0 +1,21 @@
+apiVersion: ai.kai.io/v1alpha1
+kind: InferenceService
+metadata:
+  name: torchserve
+spec:
+  model:
+    modelFormat: pytorch
+    uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
+  template:
+    spec:
+      route:
+        parentRefs:
+        - name: kai-gateway
+        rules:
+        - matches:
+          - path:
+              type: PathPrefix
+              value: /v1
+          backendRefs:
+          - name: torchserve-00001-service
+            port: 8085

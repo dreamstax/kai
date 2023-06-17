@@ -1,0 +1,66 @@
+apiVersion: core.kai.io/v1alpha1
+kind: App
+metadata:
+  name: http-echo-app
+spec:
+  template:
+    spec:
+      containers:
+      - name: http-echo
+        image: "hashicorp/http-echo"
+        imagePullPolicy: IfNotPresent
+        args: ["-listen=:9001", "-text=hello from version 1"]
+        ports:
+        - containerPort: 9001
+  route:
+    parentRefs:
+    - name: kai-gateway
+    rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /v1
+      filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            type: ReplacePrefixMatch
+            replacePrefixMatch: /
+      backendRefs:
+      - name: http-echo-app-00001-service
+        port: 9001
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /v2
+      filters:
+      - type: URLRewrite
+        urlRewrite:
+          path:
+            type: ReplacePrefixMatch
+            replacePrefixMatch: /
+      backendRefs:
+      - name: http-echo-app-00002-service
+        port: 9001
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: GatewayClass
+metadata:
+  name: kai-gateway
+spec:
+  controllerName: projectcontour.io/gateway-controller
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: Gateway
+metadata:
+  name: kai-gateway
+  namespace: projectcontour
+spec:
+  gatewayClassName: kai-gateway
+  listeners:
+  - name: http
+    protocol: HTTP
+    port: 8080
+    allowedRoutes:
+      namespaces:
+        from: All

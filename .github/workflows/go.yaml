@@ -1,0 +1,35 @@
+name: Go
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: []
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.19.4'
+      id: go
+
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - name: Install go deps and lint
+      run: make go-deps fmt
+
+    - name: Test
+      id: test
+      run: |
+        export GOPATH=/home/runner/go
+        export PATH=$PATH:/usr/local/kubebuilder/bin:/home/runner/go/bin
+        wget -O $GOPATH/bin/yq https://github.com/mikefarah/yq/releases/download/v4.28.1/yq_linux_amd64
+        chmod +x $GOPATH/bin/yq
+        make test

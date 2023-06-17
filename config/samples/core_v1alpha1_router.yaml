@@ -1,0 +1,12 @@
+apiVersion: core.kai.io/v1alpha1
+kind: Router
+metadata:
+  labels:
+    app.kubernetes.io/name: router
+    app.kubernetes.io/instance: router-sample
+    app.kubernetes.io/part-of: kai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kai
+  name: router-sample
+spec:
+  # TODO(user): Add fields here

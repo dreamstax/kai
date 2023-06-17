@@ -1,0 +1,12 @@
+apiVersion: ai.kai.io/v1alpha1
+kind: InferenceService
+metadata:
+  labels:
+    app.kubernetes.io/name: inferenceservice
+    app.kubernetes.io/instance: inferenceservice-sample
+    app.kubernetes.io/part-of: kai
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: kai
+  name: inferenceservice-sample
+spec:
+  # TODO(user): Add fields here

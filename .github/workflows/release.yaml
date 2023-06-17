@@ -1,0 +1,26 @@
+name: Releases
+
+on: 
+  push:
+    tags:
+    - 'v*'
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: generate yamls
+      run: |
+        make release
+
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "dist/crds.yaml,dist/kai-deploy.yaml"
+        generateReleaseNotes: true
