@@ -32,6 +32,32 @@ rules:
   - patch
   - update
 - apiGroups:
+  - ai.kai.io
+  resources:
+  - modelruntimes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ai.kai.io
+  resources:
+  - modelruntimes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ai.kai.io
+  resources:
+  - modelruntimes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - apps
   resources:
   - deployments

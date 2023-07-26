@@ -36,6 +36,9 @@ type InferenceServiceReconciler struct {
 //+kubebuilder:rbac:groups=ai.kai.io,resources=inferenceservices,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=ai.kai.io,resources=inferenceservices/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=ai.kai.io,resources=inferenceservices/finalizers,verbs=update
+//+kubebuilder:rbac:groups=ai.kai.io,resources=modelruntimes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=ai.kai.io,resources=modelruntimes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=ai.kai.io,resources=modelruntimes/finalizers,verbs=update
 //+kubebuilder:rbac:groups=core.kai.io,resources=apps,verbs=get;list;watch;create;update;patch;delete
 
 func (r *InferenceServiceReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
