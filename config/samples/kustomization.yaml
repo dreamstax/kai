@@ -6,4 +6,5 @@ resources:
 - core_v1alpha1_app.yaml
 - ai_v1alpha1_inferenceservice.yaml
 - ai_v1alpha1_modelruntime.yaml
+- ai_v1alpha1_inferencepipeline.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

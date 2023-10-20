@@ -8,6 +8,32 @@ rules:
 - apiGroups:
   - ai.kai.io
   resources:
+  - inferencepipelines
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ai.kai.io
+  resources:
+  - inferencepipelines/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - ai.kai.io
+  resources:
+  - inferencepipelines/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - ai.kai.io
+  resources:
   - inferenceservices
   verbs:
   - create

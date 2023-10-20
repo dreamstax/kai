@@ -76,7 +76,6 @@ example: release ## Run install example for users - follows docs
 	$(KIND) load docker-image ${IMG} --name=$(KIND_CLUSTER_NAME)
 	sleep 20
 	kubectl wait --for=condition=ready pod -l name=gateway-api-admission-server -n gateway-system
-# TODO: Need to run make release
 	kubectl create -f dist/kai-deploy.yaml
 	kubectl wait --for=condition=ready pods --all -n kai-system
 	kubectl apply -f examples/http-echo/

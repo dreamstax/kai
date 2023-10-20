@@ -36,28 +36,28 @@ type InferenceServiceSpec struct {
 type InferenceServiceStatus struct {
 }
 
-type ModelSpec struct {
-	// +required
-	ModelFormat ModelFormat `json:"modelFormat,omitempty"`
-
-	// +required
-	URI string `json:"uri,omitempty"`
-
-	// optionally set a modelRuntime - if modelRuntime is specified the inferenceContainer
-	// specified within it will be used regardless of modelFormat see ModelRuntime for more info
-	// +optional
-	ModelRuntime string `json:"modelRuntime,omitempty"`
-
-	// +optional
-	ServiceAccountRef string `json:"servicecAccountRef,omitempty"`
-}
-
-type ModelFormat string
-
-// supported model formats
-const (
-	PytorchModelFormat ModelFormat = "pytorch"
-)
+// type ModelSpec struct {
+// 	// +required
+// 	ModelFormat ModelFormat `json:"modelFormat,omitempty"`
+//
+// 	// +required
+// 	URI string `json:"uri,omitempty"`
+//
+// 	// optionally set a modelRuntime - if modelRuntime is specified the inferenceContainer
+// 	// specified within it will be used regardless of modelFormat see ModelRuntime for more info
+// 	// +optional
+// 	ModelRuntime string `json:"modelRuntime,omitempty"`
+//
+// 	// +optional
+// 	ServiceAccountRef string `json:"servicecAccountRef,omitempty"`
+// }
+//
+// type ModelFormat string
+//
+// // supported model formats
+// const (
+// 	PytorchModelFormat ModelFormat = "pytorch"
+// )
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status

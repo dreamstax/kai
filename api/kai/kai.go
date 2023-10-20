@@ -65,6 +65,12 @@ const (
 
 	// k8s app label key
 	AppLabelKey = "app"
+
+	// InferencePipelineLabelKey is the annotation attched to a inferencepipeline
+	InferencePipelineLabelKey = GroupName + "/inferencePipeline"
+
+	// InferencePipelineUIDLabelKey is the label key attached to a inferencepieline
+	InferencePipelineUIDLabelKey = GroupName + "/inferencePipelineUID"
 )
 
 var (
