@@ -1,21 +1,22 @@
-apiVersion: ai.kai.io/v1alpha1
-kind: InferenceService
+apiVersion: core.kai.io/v1alpha1
+kind: ModelRuntime
 metadata:
-  name: torchserve
+  name: pytorch-runtime
+spec:
+  supportedModelFormats:
+  - pytorch
+  containers:
+  - name: kai-container
+    image: "pytorch/torchserve-kfs:0.7.0"
+    args: ["torchserve", "--start", "--model-store=/mnt/models/model-store", "--ts-config=/mnt/models/config/config.properties"]
+    ports:
+    - containerPort: 8085
+---
+apiVersion: core.kai.io/v1alpha1
+kind: Step
+metadata:
+  name: image-classifier
 spec:
   model:
     modelFormat: pytorch
     uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
-  template:
-    spec:
-      route:
-        parentRefs:
-        - name: kai-gateway
-        rules:
-        - matches:
-          - path:
-              type: PathPrefix
-              value: /v1
-          backendRefs:
-          - name: torchserve-00001-service
-            port: 8085

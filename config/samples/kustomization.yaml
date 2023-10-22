@@ -1,10 +1,6 @@
 ## Append samples of your project ##
 resources:
-- core_v1alpha1_version.yaml
-- core_v1alpha1_config.yaml
-- core_v1alpha1_router.yaml
-- core_v1alpha1_app.yaml
-- ai_v1alpha1_inferenceservice.yaml
-- ai_v1alpha1_modelruntime.yaml
-- ai_v1alpha1_inferencepipeline.yaml
+- core_v1alpha1_step.yaml
+- core_v1alpha1_modelruntime.yaml
+- core_v1alpha1_pipeline.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

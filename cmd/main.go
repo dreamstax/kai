@@ -30,12 +30,9 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 
-	v1beta1gateway "sigs.k8s.io/gateway-api/apis/v1beta1"
-
-	aiv1alpha1 "github.com/dreamstax/kai/api/ai/v1alpha1"
 	corev1alpha1 "github.com/dreamstax/kai/api/core/v1alpha1"
-	aicontroller "github.com/dreamstax/kai/internal/controller/ai"
 	corecontroller "github.com/dreamstax/kai/internal/controller/core"
 	//+kubebuilder:scaffold:imports
 )
@@ -49,9 +46,6 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	utilruntime.Must(corev1alpha1.AddToScheme(scheme))
-
-	utilruntime.Must(v1beta1gateway.AddToScheme(scheme))
-	utilruntime.Must(aiv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -74,11 +68,10 @@ func main() {
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "da431fb1.kai.io",
+		LeaderElectionID:       "3913de27.kai.io",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
@@ -96,46 +89,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&corecontroller.VersionReconciler{
+	if err = (&corecontroller.StepReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Version")
+		setupLog.Error(err, "unable to create controller", "controller", "Step")
 		os.Exit(1)
 	}
-	if err = (&corecontroller.ConfigReconciler{
+	if err = (&corecontroller.PipelineReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Config")
-		os.Exit(1)
-	}
-	if err = (&corecontroller.RouterReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Router")
-		os.Exit(1)
-	}
-	if err = (&corecontroller.AppReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "App")
-		os.Exit(1)
-	}
-	if err = (&aicontroller.InferenceServiceReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "InferenceService")
-		os.Exit(1)
-	}
-	if err = (&aicontroller.InferencePipelineReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "InferencePipeline")
+		setupLog.Error(err, "unable to create controller", "controller", "Pipeline")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

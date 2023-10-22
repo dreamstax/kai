@@ -6,84 +6,6 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - ai.kai.io
-  resources:
-  - inferencepipelines
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - inferencepipelines/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - inferencepipelines/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - inferenceservices
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - inferenceservices/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - inferenceservices/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - modelruntimes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - modelruntimes/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - ai.kai.io
-  resources:
-  - modelruntimes/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
   - apps
   resources:
   - deployments
@@ -137,7 +59,7 @@ rules:
 - apiGroups:
   - core.kai.io
   resources:
-  - apps
+  - pipelines
   verbs:
   - create
   - delete
@@ -149,13 +71,13 @@ rules:
 - apiGroups:
   - core.kai.io
   resources:
-  - apps/finalizers
+  - pipelines/finalizers
   verbs:
   - update
 - apiGroups:
   - core.kai.io
   resources:
-  - apps/status
+  - pipelines/status
   verbs:
   - get
   - patch
@@ -163,7 +85,7 @@ rules:
 - apiGroups:
   - core.kai.io
   resources:
-  - configs
+  - steps
   verbs:
   - create
   - delete
@@ -175,91 +97,13 @@ rules:
 - apiGroups:
   - core.kai.io
   resources:
-  - configs/finalizers
+  - steps/finalizers
   verbs:
   - update
 - apiGroups:
   - core.kai.io
   resources:
-  - configs/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - core.kai.io
-  resources:
-  - routers
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - core.kai.io
-  resources:
-  - routers/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - core.kai.io
-  resources:
-  - routers/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - core.kai.io
-  resources:
-  - versions
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - core.kai.io
-  resources:
-  - versions/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - core.kai.io
-  resources:
-  - versions/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - httproutes
-  verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - httproutes/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - gateway.networking.k8s.io
-  resources:
-  - httproutes/status
+  - steps/status
   verbs:
   - get
   - patch

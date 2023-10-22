@@ -1,18 +1,13 @@
-# Kai controller
-
-Kai extends Kubneretes by providing higher level resources that make it easy to deploy and share your inference pipelines.
+# Kai
+No frills pipelines
 
 ## Description
-The Kai controller automates the management and integration of [kai-gateway](https://github.com/dreamstax/kai-gateway) which enables users to easily define and leverage ineference pipelines. 
-
-Inference workloads typically involve more than just predictions. There's pre processing steps, potentially multiple predictions, and post processing steps. A variety of solutions exist to accomplish this but most are bloated, add unnecessary complexity, and are not portable. 
-
-Kai aims to be a simple and minimal solution for defining and deploying inference pipelines whether it be for local use, research, or production environments.
+Kai automates the management and integration of [kai-piper](https://github.com/dreamstax/kai-piper) which enables users to easily define pipelines that leverage their existing services. Kai also defines several higher level resources on top of the Kubernetes API that make it easier to define, deploy and manage inference workloads.
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
 
-### Local installation [WIP]
+### Local installation
 1. Clone this repository
 ```sh 
 git clone https://github.com/dreamstax/kai && cd kai
@@ -32,18 +27,7 @@ kubectl get pods -n kai-system
 
 4. Deploy example application
 ```sh
-kubectl apply -f examples/http-echo/
-```
-
-5. Wait until resources become ready then port-forward gateway service
-```sh
-TODO: command
-```
-
-6. In a separate terminal curl the example application
-
-```sh
-curl http://localhost:8888/v1
+kubectl apply -f examples/pytorch/
 ```
 
 ### Running on the cluster
@@ -53,7 +37,7 @@ curl http://localhost:8888/v1
 make install
 ```
 	
-2. Deploy the controller to the cluster with the image specified by `IMG`:
+1. Deploy the controller to the cluster.
 
 ```sh
 make deploy IMG=quay.io/dreamstax/kai-controller:latest
@@ -75,20 +59,31 @@ make undeploy
 
 **NOTE:** Run `make --help` for more information on all potential `make` targets
 
-### How it works [WIP]
+### How it works
 This project uses kubebuilder to scaffold the creation of kubernetes resources and controllers. Kai defines the following custom resources:
+- Pipeline (WIP)
+- Step
+- ModelRuntime
 
+#### Example step.yaml
+```
+apiVersion: core.kai.io/v1alpha1
+kind: Step
+metadata:
+  name: image-classifier
+spec:
+  model:
+    modelFormat: pytorch
+    uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
+```
 
 #### Example pipeline.yaml
 TODO: example pipeline yaml
 
 ### Project Goals
-This project draws inspiration from both KNative and KServe. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
+This project draws inspiration from KNative, KServe, Argo, and Cadence. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
 
-Goals:
-- Minimal dependencies
-- UX
-- Portable
+Kai aims to be a simple and minimal solution for defining and deploying inference pipelines for local, research, or production environments.
 
 ### Project status
 This project is currently in early alpha. Deployment to production is not recommended. As a project in early alpha you can expect frequent breaking and non-breaking changes.
@@ -99,6 +94,6 @@ We hope to gather community feedback around all aspects of the project both curr
 If you would like to provide any feedback or have suggestions for new features please open an issue.
 
 ### Who is dreamstax...
-Dreamstax is a group of individuals dedicated to opensource and making AI accessible
+Dreamstax is a group of individuals dedicated to open source and making AI accessible
 For more info about the team please visit [dreamstax.io](https://dreamstax.io)
 

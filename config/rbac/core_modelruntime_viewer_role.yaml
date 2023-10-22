@@ -1,0 +1,27 @@
+# permissions for end users to view modelruntimes.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: modelruntime-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: kai
+    app.kubernetes.io/part-of: kai
+    app.kubernetes.io/managed-by: kustomize
+  name: modelruntime-viewer-role
+rules:
+- apiGroups:
+  - core.kai.io
+  resources:
+  - modelruntimes
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - core.kai.io
+  resources:
+  - modelruntimes/status
+  verbs:
+  - get
