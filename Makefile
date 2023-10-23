@@ -61,10 +61,10 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: quickstart
-quickstart: deps manifests generate build release docker-build cluster docker-load deploy ## Create cluster and all components with default values for quick dev environment
+quickstart: deps manifests generate build docker-build cluster docker-load deploy ## Create cluster and all components with default values for quick dev environment
 
 .PHONY: quickstart-local
-quickstart-local: deps manifests generate build release docker-build cluster-local docker-load-local deploy ## *Only useful for offline development - same as quickstart but loads existing images locally 
+quickstart-local: deps manifests generate build docker-build cluster-local docker-load-local deploy ## *Only useful for offline development - same as quickstart but loads existing images locally 
 
 .PHONY: example
 example: release ## Run install example for users - follows docs

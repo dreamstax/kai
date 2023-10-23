@@ -51,7 +51,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, p *corev1alpha1.Pipeline) er
 			// step doesn't exist so create it.
 			objMeta := metav1.ObjectMeta{
 				Name:            stepName.Name,
-				Namespace:       step.Namespace,
+				Namespace:       p.Namespace,
 				Labels:          names.MakeLabels(p),
 				Annotations:     names.MakeAnnotations(p),
 				OwnerReferences: []metav1.OwnerReference{*kmeta.NewControllerRef(p)},

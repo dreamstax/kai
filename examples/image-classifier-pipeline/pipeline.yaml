@@ -1,0 +1,31 @@
+apiVersion: core.kai.io/v1alpha1
+kind: ModelRuntime
+metadata:
+  name: pytorch-runtime
+spec:
+  supportedModelFormats:
+  - pytorch
+  containers:
+  - name: kai-container
+    image: "pytorch/torchserve-kfs:0.7.0"
+    args: ["torchserve", "--start", "--model-store=/mnt/models/model-store", "--ts-config=/mnt/models/config/config.properties"]
+    ports:
+    - containerPort: 8085
+---
+apiVersion: core.kai.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: image-classifier
+spec:
+  steps:
+  - spec:
+      containers:
+      - name: http-echo
+        image: "hashicorp/http-echo"
+        args: ["-listen=:9001", "-text=hello from version 1"]
+        ports:
+        - containerPort: 9001
+  - spec:
+      model:
+        modelFormat: pytorch
+        uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
