@@ -18,6 +18,8 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 type PipelineSpec struct {
@@ -50,6 +52,17 @@ type PipelineList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Pipeline `json:"items"`
+}
+
+func (p *Pipeline) GetGroupVersionKind() schema.GroupVersionKind {
+	return p.GroupVersionKind()
+}
+
+func (p *Pipeline) NamespacedName() types.NamespacedName {
+	return types.NamespacedName{
+		Namespace: p.Namespace,
+		Name:      p.Name,
+	}
 }
 
 func init() {

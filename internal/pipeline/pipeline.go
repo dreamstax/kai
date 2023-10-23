@@ -5,10 +5,8 @@ import (
 	"fmt"
 
 	corev1alpha1 "github.com/dreamstax/kai/api/core/v1alpha1"
-	"github.com/dreamstax/kai/internal/pipeline/reconcilers/names"
 	"github.com/dreamstax/kai/internal/pipeline/reconcilers/step"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/types"
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,14 +45,11 @@ func (c *Client) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, 
 	// TODO: actually need to remove objectMeta StepTemplateSpec - this was borrowed from Deployment
 	//       but a pipeline won't create multiple copies of the same step like a deployment
 	//       creates multiple pods from a single deployment.
-	for i, s := range p.Spec.Steps {
-		for _, rec := range []func(context.Context, types.NamespacedName, *corev1alpha1.Pipeline) error{
-			step.NewReconciler(c.kclient).Reconcile,
-		} {
-			name := names.StepName(p, i)
-			if err := rec(ctx, name, s); err != nil {
-				return ctrl.Result{}, err
-			}
+	for _, rec := range []func(context.Context, *corev1alpha1.Pipeline) error{
+		step.NewReconciler(c.kclient).Reconcile,
+	} {
+		if err := rec(ctx, p); err != nil {
+			return ctrl.Result{}, err
 		}
 	}
 

@@ -18,18 +18,14 @@ package step
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	corev1alpha1 "github.com/dreamstax/kai/api/core/v1alpha1"
 	"github.com/dreamstax/kai/internal/pipeline/reconcilers/names"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"knative.dev/pkg/kmap"
 	"knative.dev/pkg/kmeta"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
@@ -46,26 +42,42 @@ func NewReconciler(client kclient.Client) *Reconciler {
 }
 
 // TODO: accept step number as arg to identify appropriate step
-func (r *Reconciler) Reconcile(ctx context.Context, name types.NamespacedName, p *corev1alpha1.Step) error {
-	stepName := names.StepName(p)
-	step := &corev1alpha1.Step{}
-	err := r.client.Get(ctx, stepName, step)
-	if apierrs.IsNotFound(err) {
-		// deplyoment doesn't exist so create it.
-		_, err = r.createStep(ctx, stepName, p)
-		if err != nil {
-			return fmt.Errorf("failed to create step %q: %w", stepName, err)
-		}
-	} else if err != nil {
-		return fmt.Errorf("failed to get step %q: %w", stepName, err)
-	} else {
-		// step exists
-		_, err = r.updateStep(ctx, stepName, p, step)
-		if err != nil {
-			return fmt.Errorf("failed to update deplyoment %q: %w", stepName, err)
-		}
+func (r *Reconciler) Reconcile(ctx context.Context, p *corev1alpha1.Pipeline) error {
+	for i, s := range p.Spec.Steps {
+		stepName := names.StepName(p, i)
+		step := &corev1alpha1.Step{}
+		err := r.client.Get(ctx, stepName, step)
+		if apierrs.IsNotFound(err) {
+			// step doesn't exist so create it.
+			objMeta := metav1.ObjectMeta{
+				Name:            stepName.Name,
+				Namespace:       step.Namespace,
+				Labels:          names.MakeLabels(p),
+				Annotations:     names.MakeAnnotations(p),
+				OwnerReferences: []metav1.OwnerReference{*kmeta.NewControllerRef(p)},
+			}
+			_, err = r.createStep(ctx, stepName, objMeta, s)
+			if err != nil {
+				return fmt.Errorf("failed to create step %q: %w", stepName, err)
+			}
+		} else if err != nil {
+			return fmt.Errorf("failed to get step %q: %w", stepName, err)
+		} else {
+			// step exists
+			objMeta := metav1.ObjectMeta{
+				Name:            stepName.Name,
+				Namespace:       step.Namespace,
+				Labels:          names.MakeLabels(p),
+				Annotations:     names.MakeAnnotations(p),
+				OwnerReferences: []metav1.OwnerReference{*kmeta.NewControllerRef(p)},
+			}
+			_, err = r.updateStep(ctx, stepName, objMeta, s, step)
+			if err != nil {
+				return fmt.Errorf("failed to update deplyoment %q: %w", stepName, err)
+			}
 
-		// TODO: Surface step status to step
+			// TODO: Surface step status to pipeline
+		}
 	}
 
 	// TODO: handle failing pods
@@ -73,8 +85,8 @@ func (r *Reconciler) Reconcile(ctx context.Context, name types.NamespacedName, p
 	return nil
 }
 
-func (r *Reconciler) createStep(ctx context.Context, name types.NamespacedName, step *corev1alpha1.Pipeline) (*appsv1.Deployment, error) {
-	step, err := r.makeDeployment(ctx, name, step)
+func (r *Reconciler) createStep(ctx context.Context, name types.NamespacedName, objMeta metav1.ObjectMeta, stepTpl *corev1alpha1.StepTemplateSpec) (*corev1alpha1.Step, error) {
+	step, err := r.makeStep(ctx, name, objMeta, stepTpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make step %q: %w", name, err)
 	}
@@ -87,15 +99,11 @@ func (r *Reconciler) createStep(ctx context.Context, name types.NamespacedName, 
 	return step, nil
 }
 
-func (r *Reconciler) updateStep(ctx context.Context, name types.NamespacedName, step *corev1alpha1.Pipeline, in *appsv1.Deployment) (*appsv1.Deployment, error) {
-	step, err := r.makeDeployment(ctx, name, step)
+func (r *Reconciler) updateStep(ctx context.Context, name types.NamespacedName, objMeta metav1.ObjectMeta, stepTpl *corev1alpha1.StepTemplateSpec, in *corev1alpha1.Step) (*corev1alpha1.Step, error) {
+	step, err := r.makeStep(ctx, name, objMeta, stepTpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to update step %q: %w", name, err)
 	}
-
-	// ignore replicas and labels
-	step.Spec.Replicas = in.Spec.Replicas
-	step.Spec.Selector = in.Spec.Selector
 
 	if equality.Semantic.DeepEqual(in.Spec, step.Spec) {
 		// no changes to make just return
@@ -115,57 +123,10 @@ func (r *Reconciler) updateStep(ctx context.Context, name types.NamespacedName, 
 	return out, nil
 }
 
-func (r *Reconciler) makeDeployment(ctx context.Context, name types.NamespacedName, step *corev1alpha1.Pipeline) (*appsv1.Deployment, error) {
-	stepSpec := step.Spec.DeepCopy()
-
-	var initialReplicaCount int32
-	if stepSpec.MinReplicas == nil || (*stepSpec.MinReplicas) < 1 {
-		initialReplicaCount = 1
-	} else {
-		initialReplicaCount = *stepSpec.MinReplicas
-	}
-	// TODO: get deadline from step
-	var progressDeadline int32 = 60
-	maxUnavailable := intstr.FromInt(0)
-
-	labels := names.MakeLabels(step)
-	annotations := names.MakeAnnotations(step)
-
-	podSpecJson, err := json.Marshal(stepSpec.PodSpec)
-	if err != nil {
-		return nil, err
-	}
-	corePodSpec := corev1.PodSpec{}
-	err = json.Unmarshal(podSpecJson, &corePodSpec)
-	if err != nil {
-		return nil, err
-	}
-
-	return &appsv1.Deployment{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:            name.Name,
-			Namespace:       step.Namespace,
-			Labels:          labels,
-			Annotations:     annotations,
-			OwnerReferences: []metav1.OwnerReference{*kmeta.NewControllerRef(step)},
-		},
-		Spec: appsv1.DeploymentSpec{
-			Replicas:                &initialReplicaCount,
-			Selector:                names.MakeSelector(step),
-			ProgressDeadlineSeconds: &progressDeadline,
-			Strategy: appsv1.DeploymentStrategy{
-				Type: appsv1.RollingUpdateDeploymentStrategyType,
-				RollingUpdate: &appsv1.RollingUpdateDeployment{
-					MaxUnavailable: &maxUnavailable,
-				},
-			},
-			Template: corev1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels:      labels,
-					Annotations: annotations,
-				},
-				Spec: corePodSpec,
-			},
-		},
+func (r *Reconciler) makeStep(ctx context.Context, name types.NamespacedName, objMeta metav1.ObjectMeta, step *corev1alpha1.StepTemplateSpec) (*corev1alpha1.Step, error) {
+	stepc := step.DeepCopy()
+	return &corev1alpha1.Step{
+		ObjectMeta: objMeta,
+		Spec:       stepc.Spec,
 	}, nil
 }

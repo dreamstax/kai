@@ -63,3 +63,7 @@ func MakeSelector(p *corev1alpha1.Pipeline) *metav1.LabelSelector {
 		},
 	}
 }
+
+func MakeAnnotations(p *corev1alpha1.Pipeline) map[string]string {
+	return kmap.Filter(p.GetAnnotations(), excludeAnnotations.Has)
+}
