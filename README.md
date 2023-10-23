@@ -78,8 +78,25 @@ spec:
 ```
 
 #### Example pipeline.yaml
-TODO: example pipeline yaml
-
+```
+apiVersion: core.kai.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: image-classifier
+spec:
+  steps:
+  - spec:
+      containers:
+      - name: http-echo
+        image: "hashicorp/http-echo"
+        args: ["-listen=:9001", "-text=hello from version 1"]
+        ports:
+        - containerPort: 9001
+  - spec:
+      model:
+        modelFormat: pytorch
+        uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
+```
 ### Project Goals
 This project draws inspiration from KNative, KServe, Argo, and Cadence. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
 
