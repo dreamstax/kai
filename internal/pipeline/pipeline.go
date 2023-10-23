@@ -39,12 +39,7 @@ func (c *Client) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, 
 		return ctrl.Result{}, fmt.Errorf("failed to retrieve latest pipeline %s: %w", req.NamespacedName, err)
 	}
 
-	// Iterate over steps defined in the pipeline and reconcile them
-	// TODO: find some way to pass pipeline object meta to step reconciler
-	// TODO: steps in a pipeline need to be defined by order - 1,2,3,n...
-	// TODO: actually need to remove objectMeta StepTemplateSpec - this was borrowed from Deployment
-	//       but a pipeline won't create multiple copies of the same step like a deployment
-	//       creates multiple pods from a single deployment.
+	// TODO: determine resources and reconciler for piper
 	for _, rec := range []func(context.Context, *corev1alpha1.Pipeline) error{
 		step.NewReconciler(c.kclient).Reconcile,
 	} {
@@ -55,5 +50,3 @@ func (c *Client) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, 
 
 	return ctrl.Result{}, nil
 }
-
-// TODO: make a step for each pipeline StepTemplateSpec
