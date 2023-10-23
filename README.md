@@ -1,22 +1,11 @@
-# Kai controller
-
-Kai extends Kubernetes by providing higher level resources that support deploying and managing applications. Kai makes it easy to deploy applications to Kubernetes while utilizing best practices and strategies.
+# Kai
+No frills pipelines
 
 ## Description
-The Kai project provides the following features:
-- Easy application deployment
-- Application networking and routing
-- Automatic scaling
-- Immutable versions for varying rollout strategies, and rollbacks
-- Easy installation: requires kubernetes >= `1.24` && [Kubernetes Gateway](https://gateway-api.sigs.k8s.io/) controller [implementation](https://gateway-api.sigs.k8s.io/implementations/)
-
-Future goals:
-- Provide easy deployment of ML Models while relying on core kai resources
-- Provide supporting resources for managing and scaling ML Models
+Kai automates the management and integration of [kai-piper](https://github.com/dreamstax/kai-piper) which enables users to easily define pipelines that leverage their existing services. Kai also defines several higher level resources on top of the Kubernetes API that make it easier to define, deploy and manage inference workloads.
 
 ## Getting Started
 You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** The controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Local installation
 1. Clone this repository
@@ -38,18 +27,7 @@ kubectl get pods -n kai-system
 
 4. Deploy example application
 ```sh
-kubectl apply -f examples/http-echo/
-```
-
-5. Wait until resources become ready then port-forward gateway service
-```sh
-kubectl -n projectcontour port-forward service/envoy-kai-gateway 8888:8080
-```
-
-6. In a separate terminal curl the example application
-
-```sh
-curl http://localhost:8888/v1
+kubectl apply -f examples/pytorch/
 ```
 
 ### Running on the cluster
@@ -59,10 +37,10 @@ curl http://localhost:8888/v1
 make install
 ```
 	
-2. Deploy the controller to the cluster with the image specified by `IMG`:
+1. Deploy the controller to the cluster.
 
 ```sh
-make deploy IMG=<some-registry>/kai-controller:tag
+make deploy IMG=quay.io/dreamstax/kai-controller:latest
 ```
 
 ### Uninstall CRDs
@@ -83,55 +61,46 @@ make undeploy
 
 ### How it works
 This project uses kubebuilder to scaffold the creation of kubernetes resources and controllers. Kai defines the following custom resources:
-- App (high level application resource that encapsulates lower level resources, all other resources are configured through an App)
-- Router (networking resource that controls routing and visibility of application versions)
-- Config (contains application level configuration)
-- Version (an immutable deployment that represents a specific config version)
+- Pipeline (WIP)
+- Step
+- ModelRuntime
 
-#### Example app.yaml
-An example http-echo app with a single route defined
-```yaml
+#### Example step.yaml
+```
 apiVersion: core.kai.io/v1alpha1
-kind: App
+kind: Step
 metadata:
-  name: http-echo-app
+  name: image-classifier
 spec:
-  template:
-    spec:
+  model:
+    modelFormat: pytorch
+    uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
+```
+
+#### Example pipeline.yaml
+```
+apiVersion: core.kai.io/v1alpha1
+kind: Pipeline
+metadata:
+  name: image-classifier
+spec:
+  steps:
+  - spec:
       containers:
       - name: http-echo
         image: "hashicorp/http-echo"
         args: ["-listen=:9001", "-text=hello from version 1"]
         ports:
         - containerPort: 9001
-  route:
-    parentRefs:
-    - name: kai-gateway
-    rules:
-    - matches:
-      - path:
-          type: PathPrefix
-          value: /v1
-      filters:
-      - type: URLRewrite
-        urlRewrite:
-          path:
-            type: ReplacePrefixMatch
-            replacePrefixMatch: /
-      backendRefs:
-      - name: http-echo-app-00001-service
-        port: 9001
-
+  - spec:
+      model:
+        modelFormat: pytorch
+        uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
 ```
+### Project Goals
+This project draws inspiration from KNative, KServe, Argo, and Cadence. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
 
-### Project notes
-This project draws inspiration from both KNative and KServe. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
-
-Project Goals:
-- Minimal dependencies
-- UX
-- Extensibility while relying on core resources (e.g.; ML model deployment)
-- Make it easier to adopt Kubernetes and its best practices
+Kai aims to be a simple and minimal solution for defining and deploying inference pipelines for local, research, or production environments.
 
 ### Project status
 This project is currently in early alpha. Deployment to production is not recommended. As a project in early alpha you can expect frequent breaking and non-breaking changes.
@@ -141,8 +110,7 @@ We hope to gather community feedback around all aspects of the project both curr
 ## Contributing
 If you would like to provide any feedback or have suggestions for new features please open an issue.
 
-### For more info...
-Please visit [dreamstax.io](https://dreamstax.io)
-## License
+### Who is dreamstax...
+Dreamstax is a group of individuals dedicated to open source and making AI accessible
+For more info about the team please visit [dreamstax.io](https://dreamstax.io)
 
-// TODO

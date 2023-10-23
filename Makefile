@@ -2,8 +2,6 @@ IMG ?= dreamstax/kai-controller:$(VERSION)
 VERSION ?= 0.0.1
 PLATFORMS ?= linux/arm64,linux/amd64,linux/s390x,linux/ppc64le
 ENVTEST_K8S_VERSION = 1.26.0
-GATEWAY_NAME ?= kai-gateway
-GATEWAY_NAMESPACE ?= projectcontour
 NAMESPACE ?= default
 KIND_CLUSTER_NAME ?= kai
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
@@ -63,25 +61,19 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: quickstart
-quickstart: deps manifests generate build release docker-build cluster contour docker-load deploy ## Create cluster and all components with default values for quick dev environment
+quickstart: deps manifests generate build docker-build cluster docker-load deploy ## Create cluster and all components with default values for quick dev environment
 
 .PHONY: quickstart-local
-quickstart-local: deps manifests generate build release docker-build cluster-local docker-load-local contour deploy ## Create cluster and all components with default values for quick dev environment
+quickstart-local: deps manifests generate build docker-build cluster-local docker-load-local deploy ## *Only useful for offline development - same as quickstart but loads existing images locally 
 
 .PHONY: example
 example: release ## Run install example for users - follows docs
 	$(KIND) create cluster --name=$(KIND_CLUSTER_NAME)
-	kubectl apply -f hack/contour.yaml
-	./scripts/wait-for.sh kube-system
+	kubectl wait --for=condition=ready pods --all -n kube-system
 	$(KIND) load docker-image ${IMG} --name=$(KIND_CLUSTER_NAME)
-	sleep 20
-	kubectl wait --for=condition=ready pod -l name=gateway-api-admission-server -n gateway-system
-# TODO: Need to run make release
 	kubectl create -f dist/kai-deploy.yaml
 	kubectl wait --for=condition=ready pods --all -n kai-system
 	kubectl apply -f examples/http-echo/
-	sleep 20
-	kubectl -n projectcontour port-forward service/envoy-kai-gateway 8888:8080
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
@@ -111,21 +103,12 @@ test: manifests generate fmt vet envtest ## Run tests.
 	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) --bin-dir $(LOCALBIN) -p path)" go test ./... -coverprofile cover.out
 
 .PHONY: cluster
-cluster: kind ## Create kind cluster and setup ingress (contour)
+cluster: kind ## Create kind cluster
 	$(KIND) create cluster --config=$(KIND_CONFIG)
 
 .PHONY: cluster-local
 cluster-local: kind ## Create kind cluster
 	$(KIND) create cluster --config=$(KIND_CONFIG)
-
-.PHONY: contour
-contour: ## Setup ingress (contour)
-	kubectl apply -f hack/contour.yaml
-	./scripts/wait-for.sh kube-system
-	sleep 10
-	kubectl wait --for=condition=ready pod -l name=gateway-api-admission-server -n gateway-system
-	sleep 10
-	kubectl apply -f hack/gateway.yaml
 
 .PHONY: clean
 clean: kind ## deletes kind cluster

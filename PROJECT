@@ -4,7 +4,7 @@
 # More info: https://book.kubebuilder.io/reference/project-config.html
 domain: kai.io
 layout:
-- go.kubebuilder.io/v4-alpha
+- go.kubebuilder.io/v4
 multigroup: true
 projectName: kai
 repo: github.com/dreamstax/kai
@@ -15,51 +15,24 @@ resources:
   controller: true
   domain: kai.io
   group: core
-  kind: Version
+  kind: Step
   path: github.com/dreamstax/kai/api/core/v1alpha1
   version: v1alpha1
 - api:
     crdVersion: v1
     namespaced: true
-  controller: true
   domain: kai.io
   group: core
-  kind: Config
-  path: github.com/dreamstax/kai/api/core/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: kai.io
-  group: core
-  kind: Router
-  path: github.com/dreamstax/kai/api/core/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: kai.io
-  group: core
-  kind: App
-  path: github.com/dreamstax/kai/api/core/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  controller: true
-  domain: kai.io
-  group: ai
-  kind: InferenceService
-  path: github.com/dreamstax/kai/api/ai/v1alpha1
-  version: v1alpha1
-- api:
-    crdVersion: v1
-    namespaced: true
-  domain: kai.io
-  group: ai
   kind: ModelRuntime
-  path: github.com/dreamstax/kai/api/ai/v1alpha1
+  path: github.com/dreamstax/kai/api/core/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: kai.io
+  group: core
+  kind: Pipeline
+  path: github.com/dreamstax/kai/api/core/v1alpha1
   version: v1alpha1
 version: "3"

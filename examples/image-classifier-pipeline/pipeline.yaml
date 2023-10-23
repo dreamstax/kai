@@ -13,10 +13,19 @@ spec:
     - containerPort: 8085
 ---
 apiVersion: core.kai.io/v1alpha1
-kind: Step
+kind: Pipeline
 metadata:
   name: image-classifier
 spec:
-  model:
-    modelFormat: pytorch
-    uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
+  steps:
+  - spec:
+      containers:
+      - name: http-echo
+        image: "hashicorp/http-echo"
+        args: ["-listen=:9001", "-text=hello from version 1"]
+        ports:
+        - containerPort: 9001
+  - spec:
+      model:
+        modelFormat: pytorch
+        uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
