@@ -7,7 +7,7 @@ KIND_CLUSTER_NAME ?= kai
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-KIND ?=$(LOCALBIN)/kind
+KIND ?= $(LOCALBIN)/kind
 KIND_CONFIG ?= hack/kind-config.yaml 
 KUSTOMIZE_VERSION ?= v4.5.7
 # using v0.11.0 anything later breaks CRD validation - see https://github.com/kubernetes-sigs/controller-tools/pull/755
@@ -59,21 +59,14 @@ help: ## Display this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 ##@ Development
+.PHONY: dev
+dev: deps manifests generate build cluster install run
 
 .PHONY: quickstart
-quickstart: deps manifests generate build docker-build cluster docker-load deploy ## Create cluster and all components with default values for quick dev environment
+quickstart: deps manifests generate build docker-build cluster docker-load deploy example ## Create cluster and all components with default values for quick dev environment
 
 .PHONY: quickstart-local
-quickstart-local: deps manifests generate build docker-build cluster-local docker-load-local deploy ## *Only useful for offline development - same as quickstart but loads existing images locally 
-
-.PHONY: example
-example: release ## Run install example for users - follows docs
-	$(KIND) create cluster --name=$(KIND_CLUSTER_NAME)
-	kubectl wait --for=condition=ready pods --all -n kube-system
-	$(KIND) load docker-image ${IMG} --name=$(KIND_CLUSTER_NAME)
-	kubectl create -f dist/kai-deploy.yaml
-	kubectl wait --for=condition=ready pods --all -n kai-system
-	kubectl apply -f examples/http-echo/
+quickstart-local: deps manifests generate build docker-build cluster-local docker-load-local deploy example ## *Only useful for offline development - same as quickstart but loads existing images locally 
 
 .PHONY: manifests
 manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
@@ -190,6 +183,10 @@ release: manifests kustomize ## release generates single file yamls for crd's, c
 	$(KUSTOMIZE) build config/crd -o dist/crds.yaml
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default -o dist/kai-deploy.yaml
+
+.PHONY: example
+example:
+	kubectl apply -f examples/image-classifier-pipeline
 
 ##@ Build Dependencies
 

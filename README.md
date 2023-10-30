@@ -2,83 +2,38 @@
 No frills pipelines
 
 ## Description
-Kai automates the management and integration of [kai-piper](https://github.com/dreamstax/kai-piper) which enables users to easily define pipelines that leverage their existing services. Kai also defines several higher level resources on top of the Kubernetes API that make it easier to define, deploy and manage inference workloads.
+Kai automates the management and integration of [kai-piper](https://github.com/dreamstax/kai-piper) which enables users to easily define and execute pipelines. Kai also defines several higher level resources on top of the Kubernetes API that make it easier to define, deploy and manage your pipelines.
 
-## Getting Started
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
+For more detailed information please see the docs at [kai-docs](https://kai-docs.dreamstax.io) and we encourage everyone to join the [kai-discord](https://discord.gg/qX4umFFkza) server.
 
-### Local installation
-1. Clone this repository
-```sh 
+## Table of Contents
+- [Kai](#kai)
+  - [Description](#description)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Features](#features)
+  - [Contributing](#contributing)
+  - [Acknowledgements](#acknowledgements)
+  - [Project status](#project-status)
+  - [License](#license)
+
+## Installation
+The quickest way to get up and running with Kai is to clone the repo and run the quickstart using make. This will create a cluster using [kind](https://sigs.k8s.io/kind), build and deploy the controller, and deploy an example pipeline.
+```bash
 git clone https://github.com/dreamstax/kai && cd kai
-```
-
-2. Download dependencies, create cluster, install CRDs, and deploy controller
-```sh
 make quickstart
 ```
-
-This is an exhaustive build and install of all required dependencies and assumes nothing exists. This is mostly useful for initial repo pulls or starting from scratch. You can see a list of commands that are run within the makefile and perform the ones necessary during development.
-
-3. After completion of the make command, ensure the controller is running in the cluster by checking the pods within the namespace.
-```sh
-kubectl get pods -n kai-system
+#### For Existing Clusters
+*note: this section is wip as we do not yet have a first release*
+Use `kubectl` to install the CRDs and deploy the controller to your cluster.
+```bash
+kubectl apply -f {github-release-url}
 ```
-
-4. Deploy example application
-```sh
-kubectl apply -f examples/pytorch/
-```
-
-### Running on the cluster
-1. Install Custom Resources:
-
-```sh
-make install
-```
-	
-1. Deploy the controller to the cluster.
-
-```sh
-make deploy IMG=quay.io/dreamstax/kai-controller:latest
-```
-
-### Uninstall CRDs
-To delete the CRDs from the cluster:
-
-```sh
-make uninstall
-```
-
-### Undeploy controller
-Undeploy the controller from the cluster:
-
-```sh
-make undeploy
-```
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-### How it works
-This project uses kubebuilder to scaffold the creation of kubernetes resources and controllers. Kai defines the following custom resources:
-- Pipeline (WIP)
-- Step
-- ModelRuntime
-
-#### Example step.yaml
-```
-apiVersion: core.kai.io/v1alpha1
-kind: Step
-metadata:
-  name: image-classifier
-spec:
-  model:
-    modelFormat: pytorch
-    uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
-```
-
-#### Example pipeline.yaml
-```
+## Usage
+Create a new pipeline by defining a Pipeline resource.
+```yaml
+# pipeline.yaml
 apiVersion: core.kai.io/v1alpha1
 kind: Pipeline
 metadata:
@@ -86,31 +41,79 @@ metadata:
 spec:
   steps:
   - spec:
-      containers:
-      - name: http-echo
-        image: "hashicorp/http-echo"
-        args: ["-listen=:9001", "-text=hello from version 1"]
-        ports:
-        - containerPort: 9001
-  - spec:
       model:
         modelFormat: pytorch
         uri: gs://kfserving-examples/models/torchserve/image_classifier/v1
 ```
-### Project Goals
-This project draws inspiration from KNative, KServe, Argo, and Cadence. It hopes to provide a modern and simple solution to the same problems those projects hope to solve.
 
-Kai aims to be a simple and minimal solution for defining and deploying inference pipelines for local, research, or production environments.
+Then apply this pipeline resource to the cluster.
+```bash
+kubectl apply -f pipeline.yaml
+```
 
-### Project status
+#### Running a pipeline
+*note: this section is wip as we build out kai-piper*
+- retrieve pipeline ID (pipeline resource could expose this, also available via kai-piper)
+- port-forward kai-piper server (could also be registered on an ingress gateway)
+- call `/v1alpha1/pipelineJobs/{job_id}:run`
+
+## Features
+The Kai controller provides the following features
+- Pipeline orchestration and management via [kai-piper](https://github.com/dreamstax/kai-piper)
+- Service Deployment - Kai can register your pipelines and deploy your steps via a consolidated API (similar to KServe/KNative) which can make adopting Kubernetes a much easier process.
+- Kubernetes native scaling - piper is a simple orchestrator and your steps run as standard Kubernetes deployments allowing you to configure HPA's and resources separately from the pipeline orchestration.
+- Flexibility - Since steps are just deployments with services you can configure Kai to execute steps outside of it's control plane. This makes it easy for users with existing model deployments or workloads to migrate. Additionally since Kai is only orchestrating the execution of your steps your workloads won't have a large dependency on it's API.
+
+## Contributing
+For people interested in contributing to Kai please check out our open issues on GitHub. For bug reports or feature requests please add the appropriate tag to your issue so it can be triaged appropriately. We also strongly encourage members of the community to join the [kai-discord](https://discord.gg/qX4umFFkza) server, where you'll be able to communicate with maintainers and other members about Kai.
+
+#### Prerequisites
+In order to develop for Kai you'll need the following dependencies
+- Go >= 1.20
+
+#### Getting Started
+The easiest way to get started is by cloning this repo and running make to install and setup all other dependencies
+
+```sh 
+git clone https://github.com/dreamstax/kai && cd kai
+make quickstart
+```
+This is an exhaustive build and install of all required dependencies and assumes nothing exists. This is mostly useful for initial repo pulls or starting from scratch. You can see a list of commands that are run within the makefile and perform the ones necessary during development.
+
+After completion of the make command, ensure the controller is running in the cluster by checking the pods within the namespace.
+```sh
+kubectl get pods -n kai-system
+```
+
+#### Running locally
+Oftentimes when making changes to the controller it's nice to just run the controller locally and not in the cluster. To achieve this run the following command.
+
+```sh
+make dev
+```
+This will build the manifests and install the CRDs into the cluster then run the controller in your current terminal window. For a tighter iteration loop, familiarize yourself with the make targets and just run what you need.
+
+## Acknowledgements
+Kai aims to be a simple and modern solution for defining and deploying pipelines for local, research, or production environments.
+
+This project draws inspiration from [KNative](https://github.com/knative/serving), [KServe](https://github.com/kserve/kserve), [Argo](https://github.com/argoproj/argo-workflows), and [Cadence](https://github.com/uber/cadence). We hope to provide a modern and simple alternative to some of the same problems those projects aim to solve.
+
+## Project status
 This project is currently in early alpha. Deployment to production is not recommended. As a project in early alpha you can expect frequent breaking and non-breaking changes.
 
 We hope to gather community feedback around all aspects of the project both current and future.
 
-## Contributing
-If you would like to provide any feedback or have suggestions for new features please open an issue.
+## License
+Copyright 2023 The Kai Authors.
 
-### Who is dreamstax...
-Dreamstax is a group of individuals dedicated to open source and making AI accessible
-For more info about the team please visit [dreamstax.io](https://dreamstax.io)
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

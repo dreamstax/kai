@@ -59,6 +59,32 @@ rules:
 - apiGroups:
   - core.kai.io
   resources:
+  - modelruntimes
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - core.kai.io
+  resources:
+  - modelruntimes/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - core.kai.io
+  resources:
+  - modelruntimes/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - core.kai.io
+  resources:
   - pipelines
   verbs:
   - create

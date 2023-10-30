@@ -41,6 +41,9 @@ type PipelineReconciler struct {
 //+kubebuilder:rbac:groups=core.kai.io,resources=pipelines,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core.kai.io,resources=pipelines/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=core.kai.io,resources=pipelines/finalizers,verbs=update
+//+kubebuilder:rbac:groups=core.kai.io,resources=modelruntimes,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=core.kai.io,resources=modelruntimes/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=core.kai.io,resources=modelruntimes/finalizers,verbs=update
 
 func (r *PipelineReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	return r.pipec.Reconcile(ctx, req)
